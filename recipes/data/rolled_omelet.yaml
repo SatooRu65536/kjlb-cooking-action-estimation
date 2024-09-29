@@ -1,0 +1,46 @@
+name: 伊達巻き
+url: https://www.kikkoman.co.jp/homecook/search/recipe/00055288/
+step:
+  - ID[はんぺんを千切る]
+  - ID[卵を割る]
+  - ID[卵を溶く]
+  - ID[ペースト状にする]
+  - ID[濾す]
+  - ID[油をしく]
+  - ID[生地を流し込む]
+  - ID[アルミ蓋を乗せる]
+  - ID[待つ]
+  - ID[裏返す]
+  - ID[巻きすに下ろす]
+  - ID[卵を巻く]
+  - ID[生地を流し込む]
+  - ID[アルミ蓋を乗せる]
+  - ID[待つ]
+  - ID[裏返す]
+  - ID[巻きすに下ろす]
+  - ID[待つ]:
+    time: 0:0:10
+  - ID[卵を巻く]
+  - ID[待つ]
+  - ID[切る]
+process:
+  - ID[待つ]:
+    title: 焼き色が付くまで待つ
+    description: 焼き色が付くまで待ちます
+    time: 0:5:0
+  - ID[はんぺんを千切る]:
+    title: はんぺんを千切る
+    description: はんぺんを細かく千切ってください
+    time: 0:0:5
+  - ID[卵を割る]:
+    title: 卵を割る
+    description: 卵を割ってください
+    time: 0:0:5
+  - ID[卵を溶く]:
+    title: 卵を溶く
+    description: 卵がよく混ざるように溶いてください
+    time: 0:0:5
+  - ID[ペースト状にする]:
+    title: ペースト状にする
+    description: 卵をペースト状にしてください
+    time: 0:0:5
