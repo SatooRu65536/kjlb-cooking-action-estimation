@@ -1,4 +1,4 @@
-import { Recipe, RecipeYaml, Step, StepRecord, Time } from './types/recipe';
+import { Recipe, RecipeYaml, Step, Time } from './types/recipe';
 import { load } from 'js-yaml';
 import { readFileSync, existsSync } from 'node:fs';
 import { zRecipeYaml } from '@/schema/recipe';
@@ -22,16 +22,16 @@ function recipeYaml2Recipe(recipeYaml: RecipeYaml): Result<Recipe> {
 
   try {
     const steps = yamlSteps.map((step) => {
-      const process = processes.find((p) => p.id === step.id);
+      const process = processes.find((p) => p.id === step.process);
       if (process == undefined) throw new Error('Process not found');
 
-      const id = step.id;
+      const processId = step.process;
       const time = step.time ? parseTime(step.time) : parseTime(process.time);
       const title = process.title;
       const required = (step.required ?? process.required ?? []).map((r) => r.id);
       const requiredGroup = step.required_group;
 
-      return { id, title, time, required, requiredGroup } satisfies Step;
+      return { processId, title, time, required, requiredGroup } satisfies Step;
     });
 
     return ok({ name, url, ingredients, steps } satisfies Recipe);

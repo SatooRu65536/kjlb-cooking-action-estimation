@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const zID = z.string().regex(/^ID\[.+]$/, 'failed to match ID pattern');
+export const zProcessId = z.string().regex(/^PROCESS\[.+]$/, 'failed to match ID pattern');
 export const zGroupID = z.string().regex(/^GROUP\[.+]$/, 'failed to match GroupID pattern');
 
 export const zTime = z
@@ -22,10 +22,10 @@ export const zIngredient = z
 
 export const zStep = z
   .object({
-    id: zID,
+    processId: zProcessId,
     title: z.string(),
     time: zTime,
-    required: z.array(zID),
+    required: z.array(zProcessId),
     requiredGroup: zGroupID.optional(),
   })
   .strict();
@@ -42,18 +42,18 @@ export const zRecipe = z
 const zRawTime = z.string().regex(/^\d+:\d+:\d+$/);
 const zRawStep = z
   .object({
-    id: zID,
+    process: zProcessId,
     time: zRawTime.optional(),
-    required: z.array(z.object({ id: zID })).optional(),
+    required: z.array(z.object({ id: zProcessId })).optional(),
     required_group: zGroupID.optional(),
   })
   .strict();
 const zRawProcess = z
   .object({
-    id: zID,
+    id: zProcessId,
     title: z.string(),
     time: zRawTime.optional(),
-    required: z.array(z.object({ id: zID })).optional(),
+    required: z.array(z.object({ id: zProcessId })).optional(),
   })
   .strict();
 
