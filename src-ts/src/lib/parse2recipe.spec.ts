@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { parse2recipe } from './parse2recipe';
+import { zRecipe } from '@/schema/recipe';
 
 describe('parse2recipe', () => {
   test('レシビをパースできるか', () => {
@@ -9,5 +10,6 @@ describe('parse2recipe', () => {
 
     console.log(JSON.stringify(res.data, undefined, 2));
     expect(res.data).toBeDefined();
+    expect(zRecipe.safeParse(res.data)).toEqual({ success: true, data: res.data });
   });
 });
