@@ -8,7 +8,6 @@ describe('parse2recipe', () => {
 
     if (!res.success) throw new Error(res.error);
 
-    console.log(JSON.stringify(res.data, undefined, 2));
     expect(res.data).toBeDefined();
     expect(zRecipe.safeParse(res.data)).toEqual({ success: true, data: res.data });
   });
