@@ -1,4 +1,4 @@
-import { Recipe, RecipeYaml, Step, Time } from './types/recipe';
+import { Recipe, RecipeYaml, Step, Time } from '@/types/recipe';
 import { load } from 'js-yaml';
 import { readFileSync, existsSync } from 'node:fs';
 import { zRecipeYaml } from '@/schema/recipe';
