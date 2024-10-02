@@ -22,20 +22,20 @@ export const zIngredient = z
 
 export const zStep = z
   .object({
+    id: zID,
     title: z.string(),
     time: zTime,
     required: z.array(zID),
     requiredGroup: zGroupID.optional(),
   })
   .strict();
-export const zStepRecord = z.record(zID, zStep);
 
 export const zRecipe = z
   .object({
     name: z.string(),
     url: z.string().optional(),
     ingredients: z.array(zIngredient),
-    steps: zStepRecord,
+    steps: z.array(zStep),
   })
   .strict();
 

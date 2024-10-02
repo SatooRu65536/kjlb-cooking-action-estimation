@@ -25,20 +25,16 @@ function recipeYaml2Recipe(recipeYaml: RecipeYaml): Result<Recipe> {
       const process = processes.find((p) => p.id === step.id);
       if (process == undefined) throw new Error('Process not found');
 
+      const id = step.id;
       const time = step.time ? parseTime(step.time) : parseTime(process.time);
       const title = process.title;
       const required = (step.required ?? process.required ?? []).map((r) => r.id);
       const requiredGroup = step.required_group;
 
-      return { title, time, required, requiredGroup } satisfies Step;
+      return { id, title, time, required, requiredGroup } satisfies Step;
     });
 
-    const stepRecord: StepRecord = {};
-    for (const step of steps) {
-      stepRecord[step.title] = step;
-    }
-
-    return ok({ name, url, ingredients, steps: stepRecord });
+    return ok({ name, url, ingredients, steps } satisfies Recipe);
   } catch (error: unknown) {
     if (error instanceof Error) return err(error.message);
     return err('Unknown error');
