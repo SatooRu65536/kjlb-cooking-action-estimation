@@ -26,7 +26,7 @@ export const zStep = z
     title: z.string(),
     time: zTime,
     required: z.array(zProcessId),
-    requiredGroup: zGroupID.optional(),
+    requiredGroups: z.array(zGroupID),
   })
   .strict();
 
@@ -45,7 +45,7 @@ const zRawStep = z
     process: zProcessId,
     time: zRawTime.optional(),
     required: z.array(z.object({ id: zProcessId })).optional(),
-    required_group: zGroupID.optional(),
+    required_groups: z.array(zGroupID).optional(),
   })
   .strict();
 const zRawProcess = z

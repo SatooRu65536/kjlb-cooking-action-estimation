@@ -21,32 +21,45 @@ steps:
   - process: PROCESS[濾す]
   - process: PROCESS[油をしく]
   - process: PROCESS[生地を流し込む]
-    required_group: GROUP[1回目]
+    required_groups:
+      - GROUP[1回目]
   - process: PROCESS[アルミ蓋を乗せる]
-    required_group: GROUP[1回目]
+    required_groups:
+      - GROUP[1回目]
   - process: PROCESS[待つ]
-    required_group: GROUP[1回目]
+    required_groups:
+      - GROUP[1回目]
   - process: PROCESS[裏返す]
-    required_group: GROUP[1回目]
+    required_groups:
+      - GROUP[1回目]
   - process: PROCESS[巻きすに下ろす]
-    required_group: GROUP[1回目]
+    required_groups:
+      - GROUP[1回目]
   - process: PROCESS[卵を巻く]
-    required_group: GROUP[1回目]
+    required_groups:
+      - GROUP[1回目]
   - process: PROCESS[生地を流し込む]
-    required_group: GROUP[2回目]
+    required_groups:
+      - GROUP[2回目]
   - process: PROCESS[アルミ蓋を乗せる]
-    required_group: GROUP[2回目]
+    required_groups:
+      - GROUP[2回目]
   - process: PROCESS[待つ]
-    required_group: GROUP[2回目]
+    required_groups:
+      - GROUP[2回目]
   - process: PROCESS[裏返す]
-    required_group: GROUP[2回目]
+    required_groups:
+      - GROUP[2回目]
   - process: PROCESS[巻きすに下ろす]
-    required_group: GROUP[2回目]
+    required_groups:
+      - GROUP[2回目]
   - process: PROCESS[待つ]
     time: 0:0:10
-    required_group: GROUP[2回目]
+    required_groups:
+      - GROUP[2回目]
   - process: PROCESS[卵を巻く]
-    required_group: GROUP[2回目]
+    required_groups:
+      - GROUP[2回目]
   - process: PROCESS[待つ]
   - process: PROCESS[切る]
 processes:

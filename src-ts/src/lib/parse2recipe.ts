@@ -29,9 +29,9 @@ function recipeYaml2Recipe(recipeYaml: RecipeYaml): Result<Recipe> {
       const time = step.time ? parseTime(step.time) : parseTime(process.time);
       const title = process.title;
       const required = (step.required ?? process.required ?? []).map((r) => r.id);
-      const requiredGroup = step.required_group;
+      const requiredGroups = step.required_groups ?? [];
 
-      return { processId, title, time, required, requiredGroup } satisfies Step;
+      return { processId, title, time, required, requiredGroups } satisfies Step;
     });
 
     return ok({ name, url, ingredients, steps } satisfies Recipe);
