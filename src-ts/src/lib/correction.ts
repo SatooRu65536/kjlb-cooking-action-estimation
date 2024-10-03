@@ -87,7 +87,7 @@ function toActionRes(action: Action, step: Step | undefined): ActionResWithUndef
 }
 
 /** 補正できなかった部分を埋める */
-function fillUndefined(actionsResWithUndefined: ActionsResWithUndefined): Result<ActionsRes> {
+export function fillUndefined(actionsResWithUndefined: ActionsResWithUndefined): Result<ActionsRes> {
   const actionsRes: ActionsRes = [];
   const firstActionRes = actionsResWithUndefined.at(0);
   if (firstActionRes == undefined) return err('アクションが存在しません');
@@ -113,18 +113,39 @@ function fillUndefined(actionsResWithUndefined: ActionsResWithUndefined): Result
 }
 
 /** 同じ step が連続している場合は結合する */
-function mergeContinuousSteps(actionsRes: ActionsRes): ActionsRes {
-  const merged: ActionsRes = [];
-  let before = actionsRes.at(0);
-  if (before?.step == undefined) return actionsRes;
+export function mergeContinuousSteps(actionsRes: ActionsRes): ActionsRes {
+  const clonedActionsRes = structuredClone(actionsRes);
 
-  for (const current of actionsRes) {
-    if (current.step.processId !== before.step.processId) continue;
-    if (current.step.requiredGroups !== before.step.requiredGroups) continue;
+  const firstActionRes = clonedActionsRes.at(0);
+  if (firstActionRes?.step == undefined) throw new Error('最初のステップは必須です');
 
-    before.end = current.end;
+  const merged: ActionsRes = [firstActionRes];
+  let before = clonedActionsRes.at(0);
+  if (before?.step == undefined) return clonedActionsRes;
+
+  for (const current of clonedActionsRes.slice(1)) {
+    if (isSameStep(before.step, current.step)) {
+      const pop = merged.pop();
+      if (pop == undefined) throw new Error('pop に失敗しました');
+      merged.push({ ...pop, end: current.end });
+    } else {
+      merged.push(current);
+    }
     before = current;
   }
 
   return merged;
+}
+
+/** 同じ step か */
+function isSameStep(a: Step, b: Step): boolean {
+  if (a.processId !== b.processId) return false;
+  if (a.title !== b.title) return false;
+  if (a.time?.hour !== b.time?.hour) return false;
+  if (a.time?.minute !== b.time?.minute) return false;
+  if (a.time?.second !== b.time?.second) return false;
+  if (!a.required.every((r) => b.required.includes(r))) return false;
+  if (!a.requiredGroups.every((r) => b.requiredGroups.includes(r))) return false;
+
+  return true;
 }
