@@ -183,7 +183,6 @@ describe('correction', () => {
           end: 8,
           step: {
             processId: 'PROCESS[3]',
-            time: { hour: 0, minute: 0, second: 0 },
             title: '4つめ',
             required: [],
             requiredGroups: [],
