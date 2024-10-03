@@ -191,7 +191,7 @@ describe('correction', () => {
       ];
 
       const res = collectActions(actions, steps);
-      
+
       if (!res.success) throw new Error('collectActions に失敗しました');
       expect(res.data).toBeDefined();
       expect(res.data).toEqual(correctActions);
@@ -199,7 +199,7 @@ describe('correction', () => {
   });
 
   describe('fillUndefined', () => {
-    test('[正常系] 補正できなかった部分を埋めれるか', () => {
+    test('[正常系] 直前のactionで埋める', () => {
       const actionsResWithUndefined: ActionsResWithUndefined = [
         {
           start: 0,
@@ -219,11 +219,72 @@ describe('correction', () => {
         },
       ];
 
-      const result = fillUndefined(actionsResWithUndefined);
+      const result = fillUndefined(actionsResWithUndefined, []);
       if (!result.success) throw new Error('fillUndefined に失敗しました');
 
       expect(result.data[1]?.step).toBeDefined();
       expect(result.data[1]?.step?.processId).toBe(actionsResWithUndefined[0]?.step?.processId);
+    });
+
+    test('[正常系] 飛ばされた工程で埋める', () => {
+      const actionsResWithUndefined: ActionsResWithUndefined = [
+        {
+          start: 0,
+          end: 1,
+          step: {
+            title: 'title',
+            processId: 'PROCESS[1]',
+            requiredGroups: [],
+            required: [],
+            time: { hour: 0, minute: 0, second: 0 },
+          },
+        },
+        {
+          start: 0,
+          end: 1,
+          step: undefined,
+        },
+        {
+          start: 0,
+          end: 1,
+          step: {
+            title: 'title',
+            processId: 'PROCESS[3]',
+            requiredGroups: [],
+            required: [],
+            time: { hour: 0, minute: 0, second: 0 },
+          },
+        },
+      ];
+      const steps: Step[] = [
+        {
+          processId: 'PROCESS[1]',
+          title: 'title',
+          requiredGroups: [],
+          required: [],
+          time: { hour: 0, minute: 0, second: 0 },
+        },
+        {
+          processId: 'PROCESS[2]',
+          title: 'title',
+          requiredGroups: [],
+          required: [],
+          time: { hour: 0, minute: 0, second: 0 },
+        },
+        {
+          processId: 'PROCESS[3]',
+          title: 'title',
+          requiredGroups: [],
+          required: [],
+          time: { hour: 0, minute: 0, second: 0 },
+        },
+      ];
+
+      const result = fillUndefined(actionsResWithUndefined, steps);
+      if (!result.success) throw new Error('fillUndefined に失敗しました');
+
+      expect(result.data[1]?.step).toBeDefined();
+      expect(result.data[1]?.step?.processId).toBe(steps[1]?.processId);
     });
   });
 
