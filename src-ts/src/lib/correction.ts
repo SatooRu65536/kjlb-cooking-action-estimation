@@ -20,14 +20,14 @@ export function collectActions(actions: Action[], steps: Step[]): Result<Actions
     },
   ];
   for (const action of actions.slice(1)) {
-    const nextStep = steps.at(currentStepIndex + 1);
+    const futureSteps = steps.slice(currentStepIndex + 1);
     const currentStep = steps.at(currentStepIndex);
     if (currentStep == undefined) return err('ステップが存在しません');
 
-    const { collectedStep, isNext } = correctCurrentStep(action, currentStep, nextStep);
+    const { collectedStep, plsStepIndex } = correctCurrentStep(action, currentStep, futureSteps);
     actionsResWithUndefined.push(toActionRes(action, collectedStep));
 
-    if (isNext) currentStepIndex++;
+    currentStepIndex += plsStepIndex;
   }
 
   const filledRes = fillUndefined(actionsResWithUndefined);
@@ -41,27 +41,37 @@ export function collectActions(actions: Action[], steps: Step[]): Result<Actions
 function correctCurrentStep(
   action: Action,
   currentStep: Step,
-  nextStep: Step | undefined,
+  futureSteps: Step[],
   threshold4alternative = 0.2,
-): { collectedStep: Step | undefined; isNext: boolean } {
+): { collectedStep: Step | undefined; plsStepIndex: number } {
+  const nextStep = futureSteps.at(0);
   const mostProbable = getNthMostProbable(action);
-  if (mostProbable == undefined) return { collectedStep: undefined, isNext: false };
+  if (mostProbable == undefined) return { collectedStep: undefined, plsStepIndex: 0 };
 
   // 推定結果が現在のステップと一致する場合は補正は不要
-  if (mostProbable.processId == currentStep.processId) return { collectedStep: currentStep, isNext: false };
+  if (mostProbable.processId == currentStep.processId) return { collectedStep: currentStep, plsStepIndex: 0 };
 
   // 推定結果が次のステップと一致する場合は次のステップに進む
-  if (mostProbable.processId == nextStep?.processId) return { collectedStep: nextStep, isNext: true };
+  if (mostProbable.processId == nextStep?.processId) return { collectedStep: nextStep, plsStepIndex: 1 };
+
+  // 直前に undefined が続いている数
+  const undefinedCount = action.candidates.filter((c) => c.processId == undefined).length;
+  for (let i = 0; i < undefinedCount; i++) {
+    const step = futureSteps.at(i);
+    if (step == undefined) continue;
+
+    if (mostProbable.processId == step.processId) return { collectedStep: step, plsStepIndex: i + 1 };
+  }
 
   // 現在/次のステップが確信度が閾値以上の推定結果がある場合はそのステップに進む
   for (const estimation of action.candidates) {
     if (estimation.probability >= threshold4alternative) continue;
-    if (estimation.processId == currentStep.processId) return { collectedStep: currentStep, isNext: false };
-    if (estimation.processId == nextStep?.processId) return { collectedStep: nextStep, isNext: true };
+    if (estimation.processId == currentStep.processId) return { collectedStep: currentStep, plsStepIndex: 0 };
+    if (estimation.processId == nextStep?.processId) return { collectedStep: nextStep, plsStepIndex: 1 };
   }
 
   // 補正不可
-  return { collectedStep: undefined, isNext: false };
+  return { collectedStep: undefined, plsStepIndex: 0 };
 }
 
 /** n番目に確信度が高い推定結果を取得する. 省略時は最も確信度が高い推定結果を取得する */
@@ -112,10 +122,7 @@ function mergeContinuousSteps(actionsRes: ActionsRes): ActionsRes {
     if (current.step.processId !== before.step.processId) continue;
     if (current.step.requiredGroups !== before.step.requiredGroups) continue;
 
-    const { start, step } = before;
-    const { end } = current;
-    merged.push({ start, end, step });
-
+    before.end = current.end;
     before = current;
   }
 
