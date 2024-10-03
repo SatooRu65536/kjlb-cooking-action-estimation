@@ -3,7 +3,7 @@ import { checkRecipe } from './check-recipe';
 import { Recipe } from '@/types/recipe';
 
 describe('check', () => {
-  test('requiredGroups が重複していないか', () => {
+  test('[異常系] requiredGroups が重複していないか', () => {
     const recipe: Recipe = {
       name: 'グループが重複',
       ingredients: [],
@@ -24,7 +24,7 @@ describe('check', () => {
     expect(res.error).toBe('Duplicate required group GROUP[重複]');
   });
 
-  test('requiredGroups がループしていないか', () => {
+  test('[異常系] requiredGroups がループしていないか', () => {
     const recipe: Recipe = {
       name: 'グループが重複',
       ingredients: [],
@@ -51,7 +51,7 @@ describe('check', () => {
     expect(res.error).toBe('Loop detected PROCESS[1]');
   });
 
-  test('存在しない processId が指定されていないか', () => {
+  test('[異常系] 存在しない processId が指定されていないか', () => {
     const recipe: Recipe = {
       name: 'グループが重複',
       ingredients: [],
@@ -70,5 +70,30 @@ describe('check', () => {
     if (res.success) throw new Error('存在しない processId を検知できていません');
     expect(res.success).toBe(false);
     expect(res.error).toBe('ProcessId not found PROCESS[2]');
+  });
+
+  test('[正常系] 正常な recipe', () => {
+    const recipe: Recipe = {
+      name: '正常な recipe',
+      ingredients: [],
+      steps: [
+        {
+          processId: 'PROCESS[工程1]',
+          title: '工程1',
+          required: [],
+          requiredGroups: ['GROUP[1]'],
+        },
+        {
+          processId: 'PROCESS[工程1]',
+          title: '工程2',
+          required: ['PROCESS[工程1]'],
+          requiredGroups: ['GROUP[1]'],
+        },
+      ],
+    };
+
+    const res = checkRecipe(recipe);
+
+    expect(res.success).toBe(true);
   });
 });
