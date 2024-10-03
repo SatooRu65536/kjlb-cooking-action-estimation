@@ -65,7 +65,7 @@ function correctCurrentStep(
 
   // 現在/次のステップが確信度が閾値以上の推定結果がある場合はそのステップに進む
   for (const estimation of action.candidates) {
-    if (estimation.probability >= threshold4alternative) continue;
+    if (estimation.probability < threshold4alternative) continue;
     if (estimation.processId == currentStep.processId) return { collectedStep: currentStep, plsStepIndex: 0 };
     if (estimation.processId == nextStep?.processId) return { collectedStep: nextStep, plsStepIndex: 1 };
   }
