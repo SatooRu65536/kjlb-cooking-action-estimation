@@ -1,8 +1,204 @@
-import { ActionsRes, ActionsResWithUndefined } from '@/types/action';
+import { Action, ActionsRes, ActionsResWithUndefined } from '@/types/action';
 import { describe, expect, test } from 'vitest';
-import { fillUndefined, mergeContinuousSteps } from './correction';
+import { collectActions, fillUndefined, mergeContinuousSteps } from './correction';
+import { Step } from '@/types/recipe';
 
 describe('correction', () => {
+  describe('collectActions', () => {
+    test('[正常系] collectActions が正常に動作するか', () => {
+      const actions: Action[] = [
+        // そのまま
+        {
+          start: 0,
+          end: 1,
+          candidates: [
+            {
+              processId: 'PROCESS[0]',
+              probability: 0.9,
+              label: 0,
+            },
+            {
+              processId: 'PROCESS[1]',
+              probability: 0.1,
+              label: 1,
+            },
+          ],
+        },
+        // 次のステップ
+        {
+          start: 1,
+          end: 2,
+          candidates: [
+            {
+              processId: 'PROCESS[1]',
+              probability: 0.8,
+              label: 1,
+            },
+            {
+              processId: 'PROCESS[0]',
+              probability: 0.1,
+              label: 0,
+            },
+          ],
+        },
+        // candidates の 2番目
+        {
+          start: 2,
+          end: 3,
+          candidates: [
+            {
+              processId: 'PROCESS[0]',
+              probability: 0.7,
+              label: 1,
+            },
+            {
+              processId: 'PROCESS[1]',
+              probability: 0.3,
+              label: 0,
+            },
+          ],
+        },
+        // スキップ
+        {
+          start: 3,
+          end: 4,
+          candidates: [
+            {
+              processId: 'PROCESS[skip]',
+              probability: 0.7,
+              label: 1,
+            },
+          ],
+        },
+        // そのまま
+        {
+          start: 4,
+          end: 5,
+          candidates: [
+            {
+              processId: 'PROCESS[1]',
+              probability: 1,
+              label: 1,
+            },
+          ],
+        },
+        // そのまま
+        {
+          start: 5,
+          end: 6,
+          candidates: [
+            {
+              processId: 'PROCESS[1]',
+              probability: 1,
+              label: 1,
+            },
+          ],
+        },
+        // スキップ (推定誤差: 本来はPROCESS[2])
+        {
+          start: 6,
+          end: 7,
+          candidates: [
+            {
+              processId: 'PROCESS[skip_error]',
+              probability: 1,
+              label: 1,
+            },
+          ],
+        },
+        // スキップの本来の工程を飛ばす
+        {
+          start: 7,
+          end: 8,
+          candidates: [
+            {
+              processId: 'PROCESS[3]',
+              probability: 1,
+              label: 1,
+            },
+          ],
+        },
+      ];
+      const steps: Step[] = [
+        {
+          processId: 'PROCESS[0]',
+          title: '1つめ',
+          requiredGroups: [],
+          required: [],
+        },
+        {
+          processId: 'PROCESS[1]',
+          title: '2つめ',
+          requiredGroups: [],
+          required: [],
+        },
+        {
+          processId: 'PROCESS[2]',
+          title: '3つめ',
+          requiredGroups: [],
+          required: [],
+        },
+        {
+          processId: 'PROCESS[3]',
+          title: '4つめ',
+          requiredGroups: [],
+          required: [],
+        },
+      ];
+
+      // 正解のactions
+      const correctActions: ActionsRes = [
+        {
+          start: 0,
+          end: 1,
+          step: {
+            processId: 'PROCESS[0]',
+            title: '1つめ',
+            required: [],
+            requiredGroups: [],
+          },
+        },
+        {
+          start: 1,
+          end: 6,
+          step: {
+            processId: 'PROCESS[1]',
+            title: '2つめ',
+            required: [],
+            requiredGroups: [],
+          },
+        },
+        {
+          start: 6,
+          end: 7,
+          step: {
+            processId: 'PROCESS[2]',
+            title: '3つめ',
+            required: [],
+            requiredGroups: [],
+          },
+        },
+        {
+          start: 7,
+          end: 8,
+          step: {
+            processId: 'PROCESS[3]',
+            time: { hour: 0, minute: 0, second: 0 },
+            title: '4つめ',
+            required: [],
+            requiredGroups: [],
+          },
+        },
+      ];
+
+      const res = collectActions(actions, steps);
+      
+      if (!res.success) throw new Error('collectActions に失敗しました');
+      expect(res.data).toBeDefined();
+      expect(res.data).toEqual(correctActions);
+    });
+  });
+
   describe('fillUndefined', () => {
     test('[正常系] 補正できなかった部分を埋めれるか', () => {
       const actionsResWithUndefined: ActionsResWithUndefined = [
