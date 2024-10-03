@@ -286,6 +286,81 @@ describe('correction', () => {
       expect(result.data[1]?.step).toBeDefined();
       expect(result.data[1]?.step?.processId).toBe(steps[1]?.processId);
     });
+
+    test('[正常系] 連続で飛ばされた工程で埋める', () => {
+      const actionsResWithUndefined: ActionsResWithUndefined = [
+        {
+          start: 0,
+          end: 1,
+          step: {
+            title: 'title',
+            processId: 'PROCESS[1]',
+            requiredGroups: [],
+            required: [],
+            time: { hour: 0, minute: 0, second: 0 },
+          },
+        },
+        {
+          start: 0,
+          end: 1,
+          step: undefined,
+        },
+        {
+          start: 0,
+          end: 1,
+          step: undefined,
+        },
+        {
+          start: 0,
+          end: 1,
+          step: {
+            title: 'title',
+            processId: 'PROCESS[4]',
+            requiredGroups: [],
+            required: [],
+            time: { hour: 0, minute: 0, second: 0 },
+          },
+        },
+      ];
+      const steps: Step[] = [
+        {
+          processId: 'PROCESS[1]',
+          title: 'title',
+          requiredGroups: [],
+          required: [],
+          time: { hour: 0, minute: 0, second: 0 },
+        },
+        {
+          processId: 'PROCESS[2]',
+          title: 'title',
+          requiredGroups: [],
+          required: [],
+          time: { hour: 0, minute: 0, second: 0 },
+        },
+        {
+          processId: 'PROCESS[3]',
+          title: 'title',
+          requiredGroups: [],
+          required: [],
+          time: { hour: 0, minute: 0, second: 0 },
+        },
+        {
+          processId: 'PROCESS[4]',
+          title: 'title',
+          requiredGroups: [],
+          required: [],
+          time: { hour: 0, minute: 0, second: 0 },
+        },
+      ];
+
+      const result = fillUndefined(actionsResWithUndefined, steps);
+      if (!result.success) throw new Error('fillUndefined に失敗しました');
+
+      expect(result.data[1]?.step).toBeDefined();
+      expect(result.data[1]?.step?.processId).toBe(steps[1]?.processId);
+      expect(result.data[2]?.step).toBeDefined();
+      expect(result.data[2]?.step?.processId).toBe(steps[2]?.processId);
+    });
   });
 
   describe('mergeContinuousSteps', () => {

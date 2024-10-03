@@ -118,7 +118,7 @@ export function fillUndefined(actionsResWithUndefined: ActionsResWithUndefined, 
     if (prev == undefined) return err('前のアクションが存在しません');
     const current = actionsResWithUndefined.at(i);
     if (current == undefined) return err('現在のアクションが存在しません');
-    const next = actionsResWithUndefined.at(i + 1);
+    const afterActions = actionsResWithUndefined.slice(i + 1);
 
     // 現在の工程が存在する場合はそのまま追加
     const curretnStep = current?.step;
@@ -128,7 +128,7 @@ export function fillUndefined(actionsResWithUndefined: ActionsResWithUndefined, 
     }
 
     // 抜けている工程を入れる
-    const missingSteps = getMissingSteps(prev, next, steps);
+    const missingSteps = getMissingSteps(prev, afterActions, steps);
     if (missingSteps != undefined) {
       actionsRes.push({ ...current, step: missingSteps });
       continue;
@@ -142,9 +142,11 @@ export function fillUndefined(actionsResWithUndefined: ActionsResWithUndefined, 
 }
 
 /** 抜けている工程を取得する */
-function getMissingSteps(prev: ActionRes, next: ActionResWithUndefined | undefined, steps: Step[]): Step | undefined {
+function getMissingSteps(prev: ActionRes, afterActions: ActionResWithUndefined[], steps: Step[]): Step | undefined {
   const prevStepIndex = steps.findIndex((s) => s.processId == prev.step.processId);
-  const nextStepIndex = next == undefined ? steps.length : steps.findIndex((s) => s.processId == next.step?.processId);
+  const nextStep = afterActions.find((a) => a.step != undefined)?.step;
+  const nextStepIndex =
+    nextStep == undefined ? steps.length : steps.findIndex((s) => s.processId == nextStep?.processId);
 
   const missingSteps = steps.slice(prevStepIndex + 1, nextStepIndex);
   return missingSteps.at(0);
