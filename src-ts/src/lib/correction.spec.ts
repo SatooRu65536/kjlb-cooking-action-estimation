@@ -94,7 +94,7 @@ describe('correction', () => {
             },
           ],
         },
-        // スキップ (推定誤差: 本来はPROCESS[2])
+        // スキップ (推定誤り: 本来はPROCESS[2])
         {
           start: 6,
           end: 7,
