@@ -1,5 +1,12 @@
-import { zAction, zActionRes, zActionResWithUndefined, zActionsRes, zActionsResWithUndefined, zCandidate } from '@/schema/action';
-import { z } from 'zod';
+import {
+  zAction,
+  zActionRes,
+  zActionResWithUndefined,
+  zActionsRes,
+  zActionsResWithUndefined,
+  zCandidate,
+} from "@/correction/schema/action";
+import { z } from "zod";
 
 export type Candidate = z.infer<typeof zCandidate>;
 export type Action = z.infer<typeof zAction>;

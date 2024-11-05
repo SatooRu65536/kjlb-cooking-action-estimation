@@ -1,9 +1,9 @@
-import { Recipe, RecipeYaml, Step, Time } from '@/types/recipe';
-import { load } from 'js-yaml';
-import { readFileSync, existsSync } from 'node:fs';
-import { zRecipeYaml } from '@/schema/recipe';
-import { Result } from '@/types/result';
-import { err, ok } from '@/utils/result';
+import { Recipe, RecipeYaml, Step, Time } from "@/correction/types/recipe";
+import { load } from "js-yaml";
+import { readFileSync, existsSync } from "node:fs";
+import { zRecipeYaml } from "@/correction/schema/recipe";
+import { Result } from "@/correction/types/result";
+import { err, ok } from "@/correction/utils/result";
 
 /** 指定したパスのyamlファイルを読み込んでRecipeに変換する */
 export function parse2recipe(path: string): Result<Recipe> {
@@ -23,21 +23,29 @@ function recipeYaml2Recipe(recipeYaml: RecipeYaml): Result<Recipe> {
   try {
     const steps = yamlSteps.map((step) => {
       const process = processes.find((p) => p.id === step.process);
-      if (process == undefined) throw new Error('Process not found');
+      if (process == undefined) throw new Error("Process not found");
 
       const processId = step.process;
       const time = step.time ? parseTime(step.time) : parseTime(process.time);
       const title = process.title;
-      const required = (step.required ?? process.required ?? []).map((r) => r.id);
+      const required = (step.required ?? process.required ?? []).map(
+        (r) => r.id,
+      );
       const requiredGroups = step.required_groups ?? [];
 
-      return { processId, title, time, required, requiredGroups } satisfies Step;
+      return {
+        processId,
+        title,
+        time,
+        required,
+        requiredGroups,
+      } satisfies Step;
     });
 
     return ok({ name, url, ingredients, steps } satisfies Recipe);
   } catch (error: unknown) {
     if (error instanceof Error) return err(error.message);
-    return err('Unknown error');
+    return err("Unknown error");
   }
 }
 
@@ -45,11 +53,14 @@ function recipeYaml2Recipe(recipeYaml: RecipeYaml): Result<Recipe> {
 function parseTime(time: string | undefined): Time {
   if (time == undefined) return undefined;
 
-  const [hour, minute, second] = time.split(':').map(Number);
+  const [hour, minute, second] = time.split(":").map(Number);
 
-  if (Number.isNaN(hour)) throw new Error('Invalid time format');
-  if (Number.isNaN(minute)) throw new Error('Invalid time format');
-  if (Number.isNaN(second)) throw new Error('Invalid time format');
+  if (Number.isNaN(hour) || hour == undefined)
+    throw new Error("Invalid time format");
+  if (Number.isNaN(minute) || minute == undefined)
+    throw new Error("Invalid time format");
+  if (Number.isNaN(second) || second == undefined)
+    throw new Error("Invalid time format");
 
   return { hour, minute, second } satisfies Time;
 }
@@ -64,6 +75,6 @@ function validateRecipe(content: unknown): Result<RecipeYaml> {
 /** yamlファイルを読み込む */
 function readYaml(path: string): Result<unknown> {
   if (!existsSync(path)) return err(`File not found: ${path}`);
-  const content = load(readFileSync(path, 'utf8'));
+  const content = load(readFileSync(path, "utf8"));
   return ok(content);
 }

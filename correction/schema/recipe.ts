@@ -1,7 +1,11 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-export const zProcessId = z.string().regex(/^PROCESS\[.+]$/, 'failed to match ID pattern');
-export const zGroupID = z.string().regex(/^GROUP\[.+]$/, 'failed to match GroupID pattern');
+export const zProcessId = z
+  .string()
+  .regex(/^PROCESS\[.+]$/, "failed to match ID pattern");
+export const zGroupID = z
+  .string()
+  .regex(/^GROUP\[.+]$/, "failed to match GroupID pattern");
 
 export const zTime = z
   .object({

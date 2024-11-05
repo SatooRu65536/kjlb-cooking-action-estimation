@@ -1,0 +1,74 @@
+{
+  "$ref": "#/definitions/Label",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Label": {
+      "additionalProperties": false,
+      "properties": {
+        "label_range": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "end": {
+                "type": "number"
+              },
+              "label": {
+                "type": "number"
+              },
+              "start": {
+                "type": "number"
+              }
+            },
+            "required": ["start", "end", "label"],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "labels": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "meta": {
+          "additionalProperties": false,
+          "properties": {
+            "count": {
+              "type": "number"
+            },
+            "frame_rate": {
+              "type": "number"
+            },
+            "frames": {
+              "type": "number"
+            },
+            "name": {
+              "type": "string"
+            },
+            "offset": {
+              "type": "number"
+            },
+            "type": {
+              "enum": ["frame", "time"],
+              "type": "string"
+            },
+            "video_url": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "offset",
+            "name",
+            "count",
+            "frames",
+            "frame_rate",
+            "type"
+          ],
+          "type": "object"
+        }
+      },
+      "required": ["meta", "labels", "label_range"],
+      "type": "object"
+    }
+  }
+}

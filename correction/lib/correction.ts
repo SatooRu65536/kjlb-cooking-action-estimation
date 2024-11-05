@@ -5,19 +5,22 @@ import {
   ActionsRes,
   ActionsResWithUndefined,
   Candidate,
-} from '@/types/action';
-import { Step } from '@/types/recipe';
-import { Result } from '@/types/result';
-import { err, ok } from '@/utils/result';
+} from "@/correction/types/action";
+import { Step } from "@/correction/types/recipe";
+import { Result } from "@/correction/types/result";
+import { err, ok } from "@/correction/utils/result";
 
 /** 推定結果を補正する */
-export function collectActions(actions: Action[], steps: Step[]): Result<ActionsRes> {
+export function collectActions(
+  actions: Action[],
+  steps: Step[],
+): Result<ActionsRes> {
   let currentStepIndex = 0;
 
   const firstAction = actions.at(0);
-  if (firstAction == undefined) return err('アクションが存在しません');
+  if (firstAction == undefined) return err("アクションが存在しません");
   const firstStep = steps.at(0);
-  if (firstStep == undefined) return err('ステップが存在しません');
+  if (firstStep == undefined) return err("ステップが存在しません");
 
   const actionsResWithUndefined: ActionsResWithUndefined = [
     {
@@ -29,7 +32,7 @@ export function collectActions(actions: Action[], steps: Step[]): Result<Actions
   for (const action of actions.slice(1)) {
     const futureSteps = steps.slice(currentStepIndex + 1);
     const currentStep = steps.at(currentStepIndex);
-    if (currentStep == undefined) return err('ステップが存在しません');
+    if (currentStep == undefined) return err("ステップが存在しません");
 
     const { collectedStep, plsStepIndex } = correctCurrentStep(
       action,
@@ -59,13 +62,16 @@ function correctCurrentStep(
 ): { collectedStep: Step | undefined; plsStepIndex: number } {
   const nextStep = futureSteps.at(0);
   const mostProbable = getNthMostProbable(action);
-  if (mostProbable == undefined) return { collectedStep: undefined, plsStepIndex: 0 };
+  if (mostProbable == undefined)
+    return { collectedStep: undefined, plsStepIndex: 0 };
 
   // 推定結果が現在のステップと一致する場合は補正は不要
-  if (mostProbable.processId == currentStep.processId) return { collectedStep: currentStep, plsStepIndex: 0 };
+  if (mostProbable.processId == currentStep.processId)
+    return { collectedStep: currentStep, plsStepIndex: 0 };
 
   // 推定結果が次のステップと一致する場合は次のステップに進む
-  if (mostProbable.processId == nextStep?.processId) return { collectedStep: nextStep, plsStepIndex: 1 };
+  if (mostProbable.processId == nextStep?.processId)
+    return { collectedStep: nextStep, plsStepIndex: 1 };
 
   // 直前に undefined が続いている数
   let undefinedCount = 0;
@@ -77,14 +83,17 @@ function correctCurrentStep(
     const step = futureSteps.at(i + 1);
     if (step == undefined) continue;
 
-    if (mostProbable.processId == step.processId) return { collectedStep: step, plsStepIndex: i + 1 };
+    if (mostProbable.processId == step.processId)
+      return { collectedStep: step, plsStepIndex: i + 1 };
   }
 
   // 現在/次のステップが確信度が閾値以上の推定結果がある場合はそのステップに進む
   for (const estimation of action.candidates) {
     if (estimation.probability < threshold4alternative) continue;
-    if (estimation.processId == currentStep.processId) return { collectedStep: currentStep, plsStepIndex: 0 };
-    if (estimation.processId == nextStep?.processId) return { collectedStep: nextStep, plsStepIndex: 1 };
+    if (estimation.processId == currentStep.processId)
+      return { collectedStep: currentStep, plsStepIndex: 0 };
+    if (estimation.processId == nextStep?.processId)
+      return { collectedStep: nextStep, plsStepIndex: 1 };
   }
 
   // 補正不可
@@ -93,31 +102,39 @@ function correctCurrentStep(
 
 /** n番目に確信度が高い推定結果を取得する. 省略時は最も確信度が高い推定結果を取得する */
 function getNthMostProbable(action: Action, n?: number): Candidate | undefined {
-  const sorted = action.candidates.sort((a, b) => b.probability - a.probability);
+  const sorted = action.candidates.sort(
+    (a, b) => b.probability - a.probability,
+  );
   return sorted.at(n ?? 0);
 }
 
 /** action と step から actionRes に変換する */
-function toActionRes(action: Action, step: Step | undefined): ActionResWithUndefined {
+function toActionRes(
+  action: Action,
+  step: Step | undefined,
+): ActionResWithUndefined {
   const { start, end } = action;
   return { start, end, step };
 }
 
 /** 補正できなかった部分を埋める */
-export function fillUndefined(actionsResWithUndefined: ActionsResWithUndefined, steps: Step[]): Result<ActionsRes> {
+export function fillUndefined(
+  actionsResWithUndefined: ActionsResWithUndefined,
+  steps: Step[],
+): Result<ActionsRes> {
   const actionsRes: ActionsRes = [];
   const firstActionRes = actionsResWithUndefined.at(0);
-  if (firstActionRes == undefined) return err('アクションが存在しません');
+  if (firstActionRes == undefined) return err("アクションが存在しません");
 
-  if (firstActionRes?.step == undefined) return err('最初のステップは必須です');
+  if (firstActionRes?.step == undefined) return err("最初のステップは必須です");
 
   actionsRes.push({ ...firstActionRes, step: firstActionRes?.step });
 
   for (let i = 1; i < actionsResWithUndefined.length; i++) {
     const prev = actionsRes.at(-1);
-    if (prev == undefined) return err('前のアクションが存在しません');
+    if (prev == undefined) return err("前のアクションが存在しません");
     const current = actionsResWithUndefined.at(i);
-    if (current == undefined) return err('現在のアクションが存在しません');
+    if (current == undefined) return err("現在のアクションが存在しません");
     const afterActions = actionsResWithUndefined.slice(i + 1);
 
     // 現在の工程が存在する場合はそのまま追加
@@ -142,11 +159,19 @@ export function fillUndefined(actionsResWithUndefined: ActionsResWithUndefined, 
 }
 
 /** 抜けている工程を取得する */
-function getMissingSteps(prev: ActionRes, afterActions: ActionResWithUndefined[], steps: Step[]): Step | undefined {
-  const prevStepIndex = steps.findIndex((s) => s.processId == prev.step.processId);
+function getMissingSteps(
+  prev: ActionRes,
+  afterActions: ActionResWithUndefined[],
+  steps: Step[],
+): Step | undefined {
+  const prevStepIndex = steps.findIndex(
+    (s) => s.processId == prev.step.processId,
+  );
   const nextStep = afterActions.find((a) => a.step != undefined)?.step;
   const nextStepIndex =
-    nextStep == undefined ? steps.length : steps.findIndex((s) => s.processId == nextStep?.processId);
+    nextStep == undefined
+      ? steps.length
+      : steps.findIndex((s) => s.processId == nextStep?.processId);
 
   const missingSteps = steps.slice(prevStepIndex + 1, nextStepIndex);
   return missingSteps.at(0);
@@ -157,7 +182,8 @@ export function mergeContinuousSteps(actionsRes: ActionsRes): ActionsRes {
   const clonedActionsRes = structuredClone(actionsRes);
 
   const firstActionRes = clonedActionsRes.at(0);
-  if (firstActionRes?.step == undefined) throw new Error('最初のステップは必須です');
+  if (firstActionRes?.step == undefined)
+    throw new Error("最初のステップは必須です");
 
   const merged: ActionsRes = [firstActionRes];
   let prev = clonedActionsRes.at(0);
@@ -166,7 +192,7 @@ export function mergeContinuousSteps(actionsRes: ActionsRes): ActionsRes {
   for (const current of clonedActionsRes.slice(1)) {
     if (isSameStep(prev.step, current.step)) {
       const pop = merged.pop();
-      if (pop == undefined) throw new Error('pop に失敗しました');
+      if (pop == undefined) throw new Error("pop に失敗しました");
       merged.push({ ...pop, end: current.end });
     } else {
       merged.push(current);
@@ -185,7 +211,8 @@ function isSameStep(a: Step, b: Step): boolean {
   if (a.time?.minute !== b.time?.minute) return false;
   if (a.time?.second !== b.time?.second) return false;
   if (!a.required.every((r) => b.required.includes(r))) return false;
-  if (!a.requiredGroups.every((r) => b.requiredGroups.includes(r))) return false;
+  if (!a.requiredGroups.every((r) => b.requiredGroups.includes(r)))
+    return false;
 
   return true;
 }

@@ -1,0 +1,31 @@
+{
+  "name": "a",
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "gen:schema": "ts-json-schema-generator --path preprocess/schema.ts -o .vscode/schema.json",
+    "gen:label": "jiti preprocess/label.ts",
+    "correction:start": "jiti ./correction/main.ts",
+    "correction:test": "vitest run ./correction",
+    "lint": "eslint",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "jiti": "^2.4.0",
+    "ts-json-schema-generator": "^2.3.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.8.7",
+    "eslint": "^9.14.0",
+    "eslint-config-unjs": "^0.4.1",
+    "jsdom": "^25.0.1",
+    "jsonc-parser": "^3.3.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "vite-tsconfig-paths": "^5.1.0",
+    "vitest": "^2.1.4"
+  }
+}

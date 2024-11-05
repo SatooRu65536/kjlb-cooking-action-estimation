@@ -1,4 +1,4 @@
-import { Err, Ok } from '@/types/result';
+import { Err, Ok } from "@/types/result";
 
 export function ok<T>(data: T): Ok<T> {
   return { success: true, data };

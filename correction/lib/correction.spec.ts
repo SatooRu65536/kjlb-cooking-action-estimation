@@ -1,11 +1,15 @@
-import { Action, ActionsRes, ActionsResWithUndefined } from '@/types/action';
-import { describe, expect, test } from 'vitest';
-import { collectActions, fillUndefined, mergeContinuousSteps } from './correction';
-import { Step } from '@/types/recipe';
+import { Action, ActionsRes, ActionsResWithUndefined } from "@/types/action";
+import { describe, expect, test } from "vitest";
+import {
+  collectActions,
+  fillUndefined,
+  mergeContinuousSteps,
+} from "./correction";
+import { Step } from "@/types/recipe";
 
-describe('correction', () => {
-  describe('collectActions', () => {
-    test('[正常系] collectActions が正常に動作するか', () => {
+describe("correction", () => {
+  describe("collectActions", () => {
+    test("[正常系] collectActions が正常に動作するか", () => {
       const actions: Action[] = [
         // そのまま
         {
@@ -13,12 +17,12 @@ describe('correction', () => {
           end: 1,
           candidates: [
             {
-              processId: 'PROCESS[0]',
+              processId: "PROCESS[0]",
               probability: 0.9,
               label: 0,
             },
             {
-              processId: 'PROCESS[1]',
+              processId: "PROCESS[1]",
               probability: 0.1,
               label: 1,
             },
@@ -30,12 +34,12 @@ describe('correction', () => {
           end: 2,
           candidates: [
             {
-              processId: 'PROCESS[1]',
+              processId: "PROCESS[1]",
               probability: 0.8,
               label: 1,
             },
             {
-              processId: 'PROCESS[0]',
+              processId: "PROCESS[0]",
               probability: 0.1,
               label: 0,
             },
@@ -47,12 +51,12 @@ describe('correction', () => {
           end: 3,
           candidates: [
             {
-              processId: 'PROCESS[0]',
+              processId: "PROCESS[0]",
               probability: 0.7,
               label: 1,
             },
             {
-              processId: 'PROCESS[1]',
+              processId: "PROCESS[1]",
               probability: 0.3,
               label: 0,
             },
@@ -64,7 +68,7 @@ describe('correction', () => {
           end: 4,
           candidates: [
             {
-              processId: 'PROCESS[skip]',
+              processId: "PROCESS[skip]",
               probability: 0.7,
               label: 1,
             },
@@ -76,7 +80,7 @@ describe('correction', () => {
           end: 5,
           candidates: [
             {
-              processId: 'PROCESS[1]',
+              processId: "PROCESS[1]",
               probability: 1,
               label: 1,
             },
@@ -88,7 +92,7 @@ describe('correction', () => {
           end: 6,
           candidates: [
             {
-              processId: 'PROCESS[1]',
+              processId: "PROCESS[1]",
               probability: 1,
               label: 1,
             },
@@ -100,7 +104,7 @@ describe('correction', () => {
           end: 7,
           candidates: [
             {
-              processId: 'PROCESS[skip_error]',
+              processId: "PROCESS[skip_error]",
               probability: 1,
               label: 1,
             },
@@ -112,7 +116,7 @@ describe('correction', () => {
           end: 8,
           candidates: [
             {
-              processId: 'PROCESS[3]',
+              processId: "PROCESS[3]",
               probability: 1,
               label: 1,
             },
@@ -121,26 +125,26 @@ describe('correction', () => {
       ];
       const steps: Step[] = [
         {
-          processId: 'PROCESS[0]',
-          title: '1つめ',
+          processId: "PROCESS[0]",
+          title: "1つめ",
           requiredGroups: [],
           required: [],
         },
         {
-          processId: 'PROCESS[1]',
-          title: '2つめ',
+          processId: "PROCESS[1]",
+          title: "2つめ",
           requiredGroups: [],
           required: [],
         },
         {
-          processId: 'PROCESS[2]',
-          title: '3つめ',
+          processId: "PROCESS[2]",
+          title: "3つめ",
           requiredGroups: [],
           required: [],
         },
         {
-          processId: 'PROCESS[3]',
-          title: '4つめ',
+          processId: "PROCESS[3]",
+          title: "4つめ",
           requiredGroups: [],
           required: [],
         },
@@ -152,8 +156,8 @@ describe('correction', () => {
           start: 0,
           end: 1,
           step: {
-            processId: 'PROCESS[0]',
-            title: '1つめ',
+            processId: "PROCESS[0]",
+            title: "1つめ",
             required: [],
             requiredGroups: [],
           },
@@ -162,8 +166,8 @@ describe('correction', () => {
           start: 1,
           end: 6,
           step: {
-            processId: 'PROCESS[1]',
-            title: '2つめ',
+            processId: "PROCESS[1]",
+            title: "2つめ",
             required: [],
             requiredGroups: [],
           },
@@ -172,8 +176,8 @@ describe('correction', () => {
           start: 6,
           end: 7,
           step: {
-            processId: 'PROCESS[2]',
-            title: '3つめ',
+            processId: "PROCESS[2]",
+            title: "3つめ",
             required: [],
             requiredGroups: [],
           },
@@ -182,8 +186,8 @@ describe('correction', () => {
           start: 7,
           end: 8,
           step: {
-            processId: 'PROCESS[3]',
-            title: '4つめ',
+            processId: "PROCESS[3]",
+            title: "4つめ",
             required: [],
             requiredGroups: [],
           },
@@ -192,21 +196,21 @@ describe('correction', () => {
 
       const res = collectActions(actions, steps);
 
-      if (!res.success) throw new Error('collectActions に失敗しました');
+      if (!res.success) throw new Error("collectActions に失敗しました");
       expect(res.data).toBeDefined();
       expect(res.data).toEqual(correctActions);
     });
   });
 
-  describe('fillUndefined', () => {
-    test('[正常系] 直前のactionで埋める', () => {
+  describe("fillUndefined", () => {
+    test("[正常系] 直前のactionで埋める", () => {
       const actionsResWithUndefined: ActionsResWithUndefined = [
         {
           start: 0,
           end: 1,
           step: {
-            title: 'title',
-            processId: 'PROCESS[1]',
+            title: "title",
+            processId: "PROCESS[1]",
             requiredGroups: [],
             required: [],
             time: { hour: 0, minute: 0, second: 0 },
@@ -220,20 +224,22 @@ describe('correction', () => {
       ];
 
       const result = fillUndefined(actionsResWithUndefined, []);
-      if (!result.success) throw new Error('fillUndefined に失敗しました');
+      if (!result.success) throw new Error("fillUndefined に失敗しました");
 
       expect(result.data[1]?.step).toBeDefined();
-      expect(result.data[1]?.step?.processId).toBe(actionsResWithUndefined[0]?.step?.processId);
+      expect(result.data[1]?.step?.processId).toBe(
+        actionsResWithUndefined[0]?.step?.processId,
+      );
     });
 
-    test('[正常系] 飛ばされた工程で埋める', () => {
+    test("[正常系] 飛ばされた工程で埋める", () => {
       const actionsResWithUndefined: ActionsResWithUndefined = [
         {
           start: 0,
           end: 1,
           step: {
-            title: 'title',
-            processId: 'PROCESS[1]',
+            title: "title",
+            processId: "PROCESS[1]",
             requiredGroups: [],
             required: [],
             time: { hour: 0, minute: 0, second: 0 },
@@ -248,8 +254,8 @@ describe('correction', () => {
           start: 0,
           end: 1,
           step: {
-            title: 'title',
-            processId: 'PROCESS[3]',
+            title: "title",
+            processId: "PROCESS[3]",
             requiredGroups: [],
             required: [],
             time: { hour: 0, minute: 0, second: 0 },
@@ -258,22 +264,22 @@ describe('correction', () => {
       ];
       const steps: Step[] = [
         {
-          processId: 'PROCESS[1]',
-          title: 'title',
+          processId: "PROCESS[1]",
+          title: "title",
           requiredGroups: [],
           required: [],
           time: { hour: 0, minute: 0, second: 0 },
         },
         {
-          processId: 'PROCESS[2]',
-          title: 'title',
+          processId: "PROCESS[2]",
+          title: "title",
           requiredGroups: [],
           required: [],
           time: { hour: 0, minute: 0, second: 0 },
         },
         {
-          processId: 'PROCESS[3]',
-          title: 'title',
+          processId: "PROCESS[3]",
+          title: "title",
           requiredGroups: [],
           required: [],
           time: { hour: 0, minute: 0, second: 0 },
@@ -281,20 +287,20 @@ describe('correction', () => {
       ];
 
       const result = fillUndefined(actionsResWithUndefined, steps);
-      if (!result.success) throw new Error('fillUndefined に失敗しました');
+      if (!result.success) throw new Error("fillUndefined に失敗しました");
 
       expect(result.data[1]?.step).toBeDefined();
       expect(result.data[1]?.step?.processId).toBe(steps[1]?.processId);
     });
 
-    test('[正常系] 連続で飛ばされた工程で埋める', () => {
+    test("[正常系] 連続で飛ばされた工程で埋める", () => {
       const actionsResWithUndefined: ActionsResWithUndefined = [
         {
           start: 0,
           end: 1,
           step: {
-            title: 'title',
-            processId: 'PROCESS[1]',
+            title: "title",
+            processId: "PROCESS[1]",
             requiredGroups: [],
             required: [],
             time: { hour: 0, minute: 0, second: 0 },
@@ -314,8 +320,8 @@ describe('correction', () => {
           start: 0,
           end: 1,
           step: {
-            title: 'title',
-            processId: 'PROCESS[4]',
+            title: "title",
+            processId: "PROCESS[4]",
             requiredGroups: [],
             required: [],
             time: { hour: 0, minute: 0, second: 0 },
@@ -324,29 +330,29 @@ describe('correction', () => {
       ];
       const steps: Step[] = [
         {
-          processId: 'PROCESS[1]',
-          title: 'title',
+          processId: "PROCESS[1]",
+          title: "title",
           requiredGroups: [],
           required: [],
           time: { hour: 0, minute: 0, second: 0 },
         },
         {
-          processId: 'PROCESS[2]',
-          title: 'title',
+          processId: "PROCESS[2]",
+          title: "title",
           requiredGroups: [],
           required: [],
           time: { hour: 0, minute: 0, second: 0 },
         },
         {
-          processId: 'PROCESS[3]',
-          title: 'title',
+          processId: "PROCESS[3]",
+          title: "title",
           requiredGroups: [],
           required: [],
           time: { hour: 0, minute: 0, second: 0 },
         },
         {
-          processId: 'PROCESS[4]',
-          title: 'title',
+          processId: "PROCESS[4]",
+          title: "title",
           requiredGroups: [],
           required: [],
           time: { hour: 0, minute: 0, second: 0 },
@@ -354,7 +360,7 @@ describe('correction', () => {
       ];
 
       const result = fillUndefined(actionsResWithUndefined, steps);
-      if (!result.success) throw new Error('fillUndefined に失敗しました');
+      if (!result.success) throw new Error("fillUndefined に失敗しました");
 
       expect(result.data[1]?.step).toBeDefined();
       expect(result.data[1]?.step?.processId).toBe(steps[1]?.processId);
@@ -363,15 +369,15 @@ describe('correction', () => {
     });
   });
 
-  describe('mergeContinuousSteps', () => {
-    test('[正常系] 連続するステップをマージできるか', () => {
+  describe("mergeContinuousSteps", () => {
+    test("[正常系] 連続するステップをマージできるか", () => {
       const actionsRes: ActionsRes = [
         {
           start: 0,
           end: 1,
           step: {
-            title: 'same',
-            processId: 'PROCESS[1]',
+            title: "same",
+            processId: "PROCESS[1]",
             requiredGroups: [],
             required: [],
             time: { hour: 0, minute: 0, second: 0 },
@@ -381,8 +387,8 @@ describe('correction', () => {
           start: 1,
           end: 2,
           step: {
-            title: 'same',
-            processId: 'PROCESS[1]',
+            title: "same",
+            processId: "PROCESS[1]",
             requiredGroups: [],
             required: [],
             time: { hour: 0, minute: 0, second: 0 },
@@ -392,8 +398,8 @@ describe('correction', () => {
           start: 2,
           end: 3,
           step: {
-            title: 'not same',
-            processId: 'PROCESS[1]',
+            title: "not same",
+            processId: "PROCESS[1]",
             requiredGroups: [],
             required: [],
             time: { hour: 0, minute: 0, second: 0 },

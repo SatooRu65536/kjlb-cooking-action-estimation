@@ -1,5 +1,13 @@
-import { zProcessId, zIngredient, zStep, zRecipe, zRecipeYaml, zTime, zGroupID } from '@/schema/recipe';
-import { z } from 'zod';
+import {
+  zProcessId,
+  zIngredient,
+  zStep,
+  zRecipe,
+  zRecipeYaml,
+  zTime,
+  zGroupID,
+} from "@/correction/schema/recipe";
+import { z } from "zod";
 
 export type ProcessId = z.infer<typeof zProcessId>;
 export type GroupID = z.infer<typeof zGroupID>;

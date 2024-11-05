@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { zProcessId, zStep } from './recipe';
+import { z } from "zod";
+import { zProcessId, zStep } from "./recipe";
 
 export const zCandidate = z
   .object({
@@ -25,5 +25,7 @@ export const zActionRes = z
   })
   .strict();
 export const zActionsRes = z.array(zActionRes);
-export const zActionResWithUndefined = zActionRes.merge(z.object({ step: zStep.optional() }));
+export const zActionResWithUndefined = zActionRes.merge(
+  z.object({ step: zStep.optional() }),
+);
 export const zActionsResWithUndefined = z.array(zActionResWithUndefined);
