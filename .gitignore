@@ -296,3 +296,6 @@ dist
 .pnp.*
 
 data/motion
+data/output
+
+preprocess/mcp_persor

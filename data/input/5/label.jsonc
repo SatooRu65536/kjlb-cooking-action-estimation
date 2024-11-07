@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "name": "tada",
+    "count": 2,
+    "offset": 4,
+    "video_url": "https://www.youtube.com/watch?v=2XdHNuw8zjc",
+    "frames": 34585,
+    "frame_rate": 60,
+    "type": "time"
+  },
+  "labels": [
+    "移動してねぎを洗う", // 1
+    "ねぎを切る", // 2
+    "卵を割る", // 3
+    "卵をまぜる", // 4
+    "油をしく", // 5
+    "卵流し込む", // 6
+    "炒める", // 7
+    "米とねぎ入れる", // 8
+    "味付けする", // 9
+    "盛り付け" // 10
+  ],
+  "label_range": [
+    {
+      "start": 39,
+      "end": 49,
+      "label": 1
+    },
+    {
+      "start": 61,
+      "end": 107,
+      "label": 2
+    },
+    {
+      "start": 138,
+      "end": 157,
+      "label": 3
+    },
+    {
+      "start": 166,
+      "end": 197,
+      "label": 4
+    },
+    {
+      "start": 251,
+      "end": 272,
+      "label": 5
+    },
+    {
+      "start": 293,
+      "end": 298,
+      "label": 6
+    },
+    {
+      "start": 299,
+      "end": 318,
+      "label": 7
+    },
+    {
+      "start": 322,
+      "end": 343,
+      "label": 8
+    },
+    {
+      "start": 350,
+      "end": 420,
+      "label": 7
+    },
+    {
+      "start": 428,
+      "end": 448,
+      "label": 9
+    },
+    {
+      "start": 454,
+      "end": 529,
+      "label": 7
+    },
+    {
+      "start": 536,
+      "end": 568,
+      "label": 10
+    }
+  ]
+}
