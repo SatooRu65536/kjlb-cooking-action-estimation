@@ -5,7 +5,7 @@
     "offset": 0,
     "frames": 37179,
     "frame_rate": 60,
-    "type": "time"
+    "type": "frame"
   },
   "labels": [
     "移動してねぎを洗う", // 1
