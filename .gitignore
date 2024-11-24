@@ -295,7 +295,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-data/motion
-data/output
+/data/output
+/data/train
+/data/test
 
 preprocess/mcp_persor

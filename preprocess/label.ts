@@ -3,7 +3,7 @@ import fs from "node:fs";
 import z from "zod";
 import { parse } from "jsonc-parser";
 
-const files = glob.sync("**/*.jsonc");
+const files = glob.sync("data/input/**/*.jsonc");
 
 const zLabel = z.object({
   meta: z.object({
