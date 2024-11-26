@@ -4,7 +4,7 @@ import shutil
 import pandas as pd
 from mcp_persor import BVHparser
 
-from label import Labels
+from common.label import Labels
 
 INPUT_DIR = "./data/input"
 OUTPUT_DIR = "./data/output"
@@ -21,38 +21,6 @@ BVH_CHANNELS = {
         "Yrotation",
     ],
 }
-
-
-def get_labels(
-    input_dir: str,
-    file_name="labels.csv",
-    other_label="その他",
-) -> Labels:
-    """
-    ラベルの種類を取得する
-
-    Parameters
-    ----------
-    input_dir : str
-        ラベルが格納されているディレクトリのパス
-    file_name : str, default "labels.csv"
-        ラベルが記述されたファイルの名前
-    other_label : str, default "その他"
-        その他のラベルの名前
-
-    Returns
-    -------
-    labels : list
-        ラベルのリスト
-    """
-
-    labels = Labels(other_label)
-
-    with open(os.path.join(input_dir, file_name)) as f:
-        for line in f:
-            labels.append_unique(line.strip())
-
-    return labels
 
 
 def get_data_files(input_dir: str) -> list[dict[str, str]]:
@@ -317,7 +285,7 @@ def export_csv(df: pd.DataFrame, output_path: str):
 
 
 def main():
-    labels = get_labels(INPUT_DIR)
+    labels = Labels(os.path.join(INPUT_DIR, "labels.csv"))
     data_files_list = get_data_files(INPUT_DIR)
 
     for i, data_files in enumerate(data_files_list):

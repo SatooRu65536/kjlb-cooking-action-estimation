@@ -1,7 +1,11 @@
 class Labels:
-    def __init__(self, other_label: str = "その他"):
+    def __init__(self, path: str, other_label: str = "その他"):
         self.labels = [other_label]
         self.other_label = other_label
+
+        with open(path) as f:
+            for line in f:
+                self.append_unique(line.strip())
 
     def id(self, label: str):
         return self.labels.index(label) + 1
