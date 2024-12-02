@@ -5,13 +5,23 @@ import shutil
 import numpy as np
 import pandas as pd
 from sklearn.metrics import classification_report
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import argparse
+import japanize_matplotlib
 
 from modules.common.labels import Labels
 from modules.estimation.model import Model, ModelType
 
-TRAIN_DIR = "./data/output/none_other/"
-LABEL_FILE = "./data/input/labels.csv"
-MODEL_DIR = "./models/"
+parser = argparse.ArgumentParser()
+parser.add_argument("--key", type=str, default="default")
+args = parser.parse_args()
+
+KEY = args.key
+
+TRAIN_DIR = os.path.join("./data/output/", KEY)
+LABELS_FILE = os.path.join("./data/input/", KEY, "labels.csv")
+MODEL_DIR = os.path.join("./models/", KEY)
 
 
 def load_data(dir: str, filename="output.csv") -> dict[str, pd.DataFrame]:
@@ -89,14 +99,92 @@ def train_and_test(
 
     # テスト
     pred = clf.predict(x_test)
-    accuracy = (pred == y_test).sum() / len(y_test)
+    pred_proba = clf.predict_proba(x_test)
 
-    return clf, pred, accuracy, y_test
+    return clf, pred, pred_proba, y_test
+
+
+def print_classification_report(y_test, pred):
+    print(classification_report(y_test, pred, zero_division=0))
+
+
+def print_top_k_precision(y_true, pred_proba, k=3):
+    top_k_preds = np.argsort(pred_proba, axis=1)[:, -k:]
+    correct_preds = np.array([y_true[i] in top_k_preds[i] for i in range(len(y_true))])
+    print(np.mean(correct_preds))
+
+
+def plot_color_map(labels: Labels, filename="color_map.png"):
+    color_dict = labels.color_dict()
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, len(color_dict))
+    ax.axis("off")
+
+    # 各色とラベルを描画
+    for i, (label, color) in enumerate(color_dict.items()):
+        rect = mpatches.Rectangle((0, i), 0.1, 0.8, color=color)
+        ax.add_patch(rect)
+        ax.text(0.15, i + 0.4, label, va="center", ha="left", fontsize=10)
+
+    plt.savefig(filename)
+
+
+def plot_result(y_test, pred, labels: Labels, filename="result.png"):
+    plt.figure(figsize=(10, 3))
+    plt.xlim(0, len(y_test))
+    plt.ylim(0, 1)
+
+    for i, label_id in enumerate(y_test):
+        # y_testに合わせて背景色を設定
+        plt.axvspan(i, i + 1, 0.5, 1, color=labels.color_by_id(label_id), alpha=0.5)
+
+    # 予測結果をプロット
+    for i, label_id in enumerate(pred):
+        plt.axvspan(i, i + 1, 0, 0.5, color=labels.color_by_id(label_id))
+
+    plt.savefig(filename)
+
+
+def plot_result_top_k(y_test, pred_proba, labels: Labels, k=3, filename="result.png"):
+    top_k_preds = np.argsort(pred_proba, axis=1)[:, -k:]
+
+    plt.figure(figsize=(10, 3))
+    plt.xlim(0, len(y_test))
+    plt.ylim(0, 1)
+
+    split_range = 1 / (k + 1)
+
+    for i, label_id in enumerate(y_test):
+        # y_testに合わせて背景色を設定
+        plt.axvspan(
+            i, i + 1, 0, split_range, color=labels.color_by_id(label_id), alpha=0.5
+        )
+
+    # 予測結果をプロット
+    for i in range(k):
+        for j, label_id in enumerate(top_k_preds[:, i]):
+            plt.axvspan(
+                j,
+                j + 1,
+                split_range * (i + 1),
+                split_range * (i + 2),
+                color=labels.color_by_id(label_id),
+            )
+
+    plt.savefig(filename)
 
 
 def main():
-    labels = Labels(LABEL_FILE)
+    labels = Labels(LABELS_FILE)
     data = load_data(TRAIN_DIR)
+
+    print(f"--- COLOR MAP ---")
+    plot_color_map(labels, filename="zzz/color_map.png")
+    color_dict = labels.color_dict()
+    for label, color in color_dict.items():
+        print(f"- {label}: {color}")
 
     model_types = ["randomforest"]
     # model_types = ["randomforest", "xgboost", "lightgbm"]
@@ -104,11 +192,27 @@ def main():
         print(f"--- {model_type}[{i+1}/{len(model_types)}] ---")
 
         for j, data_name in enumerate(data.keys()):
-            print(f"- {data_name:5}[{j+1}/{len(data.keys())}]")
-            clf, pred, accuracy, y_test = train_and_test(
+            print(f"【{data_name:5}[{j+1}/{len(data.keys())}]】")
+            clf, pred, pred_proba, y_test = train_and_test(
                 data, labels, model_type, data_name
             )
-            # print(classification_report(y_test, pred, zero_division=0))
+            accuracy = np.mean(pred == y_test)
+            print(f"accuracy: {accuracy}")
+            print_classification_report(y_test, pred)
+            print_top_k_precision(y_test, pred_proba, k=3)
+            plot_result_top_k(
+                y_test,
+                pred_proba,
+                labels,
+                k=3,
+                filename=f"zzz/result_{model_type}_{data_name}.png",
+            )
+            # plot_result(
+            #     y_test,
+            #     pred,
+            #     labels,
+            #     filename=f"zzz/result_{model_type}_{data_name}.png",
+            # )
             clf.dump(os.path.join(MODEL_DIR, f"{model_type}_{data_name}.pkl"))
 
 
