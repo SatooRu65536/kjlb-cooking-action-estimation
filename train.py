@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import argparse
 import japanize_matplotlib
+from sklearn.model_selection import train_test_split
 
 from modules.common.labels import Labels
 from modules.estimation.model import Model, ModelType
@@ -81,27 +82,51 @@ def train_and_test(
     # モデルの定義
     clf = Model(type, num_class=len(labels))
 
-    x_test = pd.DataFrame()
-    y_test = pd.DataFrame()
+    # concated_data: pd.DataFrame = pd.concat(data.values(), axis=0)
+    # x_train, x_test, y_train, y_test = train_test_split(
+    #     concated_data.drop(label_col, axis=1), concated_data[label_col], test_size=0.2
+    # )
+
     x_train = pd.DataFrame()
-    y_train = pd.DataFrame()
+    y_train = pd.Series()
+    x_test = pd.DataFrame()
+    y_test = pd.Series()
 
     for data_name, df in data.items():
         if data_name == test_data_name:
             x_test = df.drop(label_col, axis=1)
             y_test = df[label_col]
+        elif y_train.empty or x_train.empty:
+            x_train = df.drop(label_col, axis=1)
+            y_train = df[label_col]
         else:
             x_train = pd.concat([x_train, df.drop(label_col, axis=1)])
             y_train = pd.concat([y_train, df[label_col]])
 
     # 学習
-    clf.fit(df.drop(label_col, axis=1), df[label_col])
+    print(f"train data: {len(x_train)}")
+    clf.fit(x_train, y_train)
 
     # テスト
+    print(f"test data: {len(x_test)}")
     pred = clf.predict(x_test)
     pred_proba = clf.predict_proba(x_test)
 
     return clf, pred, pred_proba, y_test
+
+
+def smooth_result(pred_proba, window_size=1 * 60):
+    result = []
+
+    for i in range(len(pred_proba) - window_size):
+        part = pred_proba[i : i + window_size]
+        # 縦方向に足す
+        part_sum = np.sum(part, axis=0)
+        # 最大値のインデックスを取得
+        max_index = np.argmax(part_sum)
+        result.append(max_index)
+
+    return result
 
 
 def print_classification_report(y_test, pred):
@@ -111,7 +136,7 @@ def print_classification_report(y_test, pred):
 def print_top_k_precision(y_true, pred_proba, k=3):
     top_k_preds = np.argsort(pred_proba, axis=1)[:, -k:]
     correct_preds = np.array([y_true[i] in top_k_preds[i] for i in range(len(y_true))])
-    print(np.mean(correct_preds))
+    print(f"top-{k} precision: {np.mean(correct_preds)}")
 
 
 def plot_color_map(labels: Labels, filename="color_map.png"):
@@ -128,10 +153,11 @@ def plot_color_map(labels: Labels, filename="color_map.png"):
         ax.add_patch(rect)
         ax.text(0.15, i + 0.4, label, va="center", ha="left", fontsize=10)
 
+    print(f"export: {filename}")
     plt.savefig(filename)
 
 
-def plot_result(y_test, pred, labels: Labels, filename="result.png"):
+def plot_result(y_test, pred: np.ndarray, labels: Labels, filename="result.png"):
     plt.figure(figsize=(10, 3))
     plt.xlim(0, len(y_test))
     plt.ylim(0, 1)
@@ -144,6 +170,7 @@ def plot_result(y_test, pred, labels: Labels, filename="result.png"):
     for i, label_id in enumerate(pred):
         plt.axvspan(i, i + 1, 0, 0.5, color=labels.color_by_id(label_id))
 
+    print(f"export: {filename}")
     plt.savefig(filename)
 
 
@@ -173,11 +200,31 @@ def plot_result_top_k(y_test, pred_proba, labels: Labels, k=3, filename="result.
                 color=labels.color_by_id(label_id),
             )
 
+    print(f"export: {filename}")
     plt.savefig(filename)
 
 
 def main():
-    labels = Labels(LABELS_FILE)
+    labels = Labels(
+        LABELS_FILE,
+        # group_labels={
+        #     "その他": [
+        #         "物を取る/置く",
+        #         "IH操作",
+        #         "フライパンに手をかざす",
+        #         "切り始め",
+        #         "移動",
+        #         "油を伸ばす",
+        #         "待機",
+        #     ],
+        #     "フライパンに入れる": [
+        #         "フライパンに注ぐ",
+        #         "米を入れる",
+        #         "ネギを入れる",
+        #         "しゃんたん入れる",
+        #     ],
+        # },
+    )
     data = load_data(TRAIN_DIR)
 
     print(f"--- COLOR MAP ---")
@@ -198,22 +245,31 @@ def main():
             )
             accuracy = np.mean(pred == y_test)
             print(f"accuracy: {accuracy}")
-            print_classification_report(y_test, pred)
-            print_top_k_precision(y_test, pred_proba, k=3)
-            plot_result_top_k(
-                y_test,
-                pred_proba,
-                labels,
-                k=3,
-                filename=f"zzz/result_{model_type}_{data_name}.png",
-            )
-            # plot_result(
+            # print_classification_report(y_test, pred)
+            # print_top_k_precision(y_test, pred_proba, k=3)
+            # plot_result_top_k(
             #     y_test,
-            #     pred,
+            #     pred_proba,
             #     labels,
+            #     k=3,
             #     filename=f"zzz/result_{model_type}_{data_name}.png",
             # )
+            plot_result(
+                y_test,
+                pred,
+                labels,
+                filename=f"zzz/{KEY}/result_{model_type}_{data_name}.png",
+            )
+            smoothed_pred_proba = smooth_result(pred_proba, window_size=1 * 60)
+            plot_result(
+                y_test,
+                smoothed_pred_proba,
+                labels,
+                filename=f"zzz/{KEY}/smoothed_result_{model_type}_{data_name}.png",
+            )
+
             clf.dump(os.path.join(MODEL_DIR, f"{model_type}_{data_name}.pkl"))
+            break
 
 
 def remove_output_dir():

@@ -186,7 +186,8 @@ def segment_and_extract_feature(
 
     end = len(df) - window_size_frame
     for i in range(0, end, gap_size_frame):
-        part_df = df.iloc[i : i + window_size_frame]
+        label_df = df.iloc[i : i + window_size_frame]["label"]
+        part_df = df.iloc[i : i + window_size_frame].drop(columns=["label"])
         ## 平均
         pos_part_df_avg = part_df.mean()
         pos_part_avg_names = get_index_names(pos_part_df_avg.index, "pos-avg")
@@ -196,9 +197,12 @@ def segment_and_extract_feature(
         ## 標準偏差
         pos_part_df_std = part_df.std()
         pos_part_std_names = get_index_names(pos_part_df_std.index, "pos-std")
-        ## 最大値と最小値の差
-        pos_part_df_range = part_df.max() - part_df.min()
-        pos_part_range_names = get_index_names(pos_part_df_range.index, "pos-range")
+        ## 最大値
+        pos_part_df_max = part_df.max()
+        pos_part_max_names = get_index_names(pos_part_df_max.index, "pos-max")
+        ## 最小値
+        pos_part_df_min = part_df.min()
+        pos_part_min_names = get_index_names(pos_part_df_min.index, "pos-min")
 
         line = (
             pd.concat(
@@ -206,7 +210,8 @@ def segment_and_extract_feature(
                     pos_part_df_avg,
                     pos_part_df_var,
                     pos_part_df_std,
-                    pos_part_df_range,
+                    pos_part_df_max,
+                    pos_part_df_min,
                 ],
             )
             .to_frame()
@@ -216,11 +221,12 @@ def segment_and_extract_feature(
             pos_part_avg_names
             + pos_part_var_names
             + pos_part_std_names
-            + pos_part_range_names
+            + pos_part_max_names
+            + pos_part_min_names
         )
 
         # 最も多いラベルを取得
-        label = part_df["label"].mode().iloc[0]
+        label = label_df.mode().iloc[0]
         line["label"] = label
 
         feature_values_df = pd.concat([feature_values_df, line])
@@ -342,7 +348,18 @@ def export_csv(df: pd.DataFrame, output_path: str):
 
 
 def main():
-    labels = Labels(os.path.join(INPUT_DIR, "labels.csv"))
+    labels = Labels(
+        os.path.join(INPUT_DIR, "labels.csv"),
+        # group_labels={
+        #     "その他": ["物を取る/置く", "IH操作", "フライパンに手をかざす", "切り始め", "移動", "油を伸ばす", "待機"],
+        #     "フライパンに入れる": [
+        #         "フライパンに注ぐ",
+        #         "米を入れる",
+        #         "ネギを入れる",
+        #         "しゃんたん入れる",
+        #     ],
+        # },
+    )
     data_files_list = get_data_files(INPUT_DIR)
 
     for i, data_files in enumerate(data_files_list):
