@@ -15,7 +15,7 @@ class Model:
             case "xgboost":
                 self.model = XGBClassifier(
                     objective="multi:softmax",
-                    num_class=3,
+                    num_class=num_class,
                     eval_metric="mlogloss",
                 )
             case "lightgbm":

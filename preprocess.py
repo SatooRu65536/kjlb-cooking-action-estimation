@@ -186,8 +186,8 @@ def segment_and_extract_feature(
 
     end = len(df) - window_size_frame
     for i in range(0, end, gap_size_frame):
-        label_df = df.iloc[i : i + window_size_frame]["label"]
-        part_df = df.iloc[i : i + window_size_frame].drop(columns=["label"])
+        label_df = df.iloc[i : i + window_size_frame + 1]["label"]
+        part_df = df.iloc[i : i + window_size_frame + 1].drop(columns=["label"])
         ## 平均
         pos_part_df_avg = part_df.mean()
         pos_part_avg_names = get_index_names(pos_part_df_avg.index, "pos-avg")
