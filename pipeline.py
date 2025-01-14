@@ -143,14 +143,17 @@ def test(clf, x_test, y_test, smooth_window_size: int, k: int):
 
 def to_top_k_pred(pred_proba: np.ndarray, y_test: pd.Series, k: int):
     y_test_ = np.array(y_test)
-    top_k = np.argsort(pred_proba, axis=1)[:, -k:]
-    result = top_k[:, 0]
+    pred_proba_ = np.array(pred_proba)
+
+    top_k = pred_proba_[:, :k]
+    print(top_k)
+    result = pred_proba_[:, 0]
 
     # top_kのうち正解があればそれに置き換える
     mask = np.array([y_test_[i] in tk for i, tk in enumerate(top_k)])
     result[mask] = y_test_[mask]
 
-    return result
+    return result, mask
 
 
 def save_result(
@@ -271,7 +274,7 @@ def plot_result_by_graph(
     print(f">> Save: {file_path}")
 
 
-def plot_one_graph(ax, title, pred, y_test, labels, fontsize=20, line_width=2):
+def plot_one_graph(ax, title, pred, y_test, labels, fontsize, line_width=2):
     """
     1つのグラフをプロットします。
 
@@ -320,7 +323,7 @@ def plot_results_by_graph(
     y_test: pd.Series,
     labels: Labels,
     file_path: str,
-    fontsize=22,
+    fontsize=28,
     line_width=2,
 ):
     """
@@ -337,13 +340,13 @@ def plot_results_by_graph(
     """
 
     num_plots = len(pred_list)
-    fig, axes = plt.subplots(nrows=num_plots, ncols=1, figsize=(10, 6 * num_plots))
+    fig, axes = plt.subplots(nrows=num_plots, ncols=1, figsize=(10, 6.8 * num_plots))
 
-    for i, (title, pred, ax) in enumerate(zip(title_list, pred_list, axes.flat)):
+    for title, pred, ax in zip(title_list, pred_list, axes.flat):
         plot_one_graph(ax, title, pred, y_test, labels, fontsize, line_width)
 
     plt.tight_layout()
-
+    plt.subplots_adjust(hspace=0.35)
     plt.savefig(file_path)
     print(f">> Save: {file_path}")
 
@@ -394,75 +397,26 @@ def main():
                 smoothed_pred,
             ) = test(clf, x_test, y_test, smooth_wsize_min, top_k)
 
-            # 以前の結果を読み込む
-            result = load_result(output_dir)
-            replace_accuracy = "accuracy" in result and result["accuracy"] > accuracy
-            accuracy = result["accuracy"] if replace_accuracy else accuracy
-
-            replace_smoothed_accurary = (
-                "smoothed_accurary" in result
-                and result["smoothed_accurary"] > smoothed_accurary
-            )
-            smoothed_accurary = (
-                result["smoothed_accurary"]
-                if replace_smoothed_accurary
-                else smoothed_accurary
-            )
-
-            replace_top_k_accurary = (
-                "top_k_accurary" in result and result["top_k_accurary"] > top_k_accurary
-            )
-            top_k_accurary = (
-                result["top_k_accurary"] if replace_top_k_accurary else top_k_accurary
-            )
-
-            # 結果の保存
-            print("> SaveResult")
-            save_result(
-                accuracy,
-                smoothed_accurary,
-                top_k_accurary,
-                pred,
-                pred_proba,
-                smoothed_pred,
-                output_dir,
-            )
-
         # 結果のプロット
         print("> PlotResult")
 
-        start = int(len(y_test) / 2)
-        smooth_results_pred_proba = smooth_results(
-            pred_proba, window_size=smooth_wsize_min
-        )
-        y_test_half = y_test[
-            start + int(smooth_wsize_min / 2) : -int(smooth_wsize_min / 2)
-        ]
-        smoothed_top_1_pred_half = smooth_results_pred_proba[start:, 0]
-        # to_top_k_pred(smooth_results_pred_proba[start:], y_test_half, 1)
-        smoothed_top_3_pred_half = to_top_k_pred(smooth_results_pred_proba[start:], y_test_half, 3)
+        start = int(len(y_test) / 2) + 500
+        smooth_pred_proba = smooth_results(pred_proba, window_size=smooth_wsize_min)
+        y_test_ = y_test[int(smooth_wsize_min / 2) : -int(smooth_wsize_min / 2)]
+        smoothed_top_1_pred, mask1 = to_top_k_pred(smooth_pred_proba, y_test_, 1)
+        smoothed_top_3_pred, mask3 = to_top_k_pred(smooth_pred_proba, y_test_, 3)
         plot_results_by_graph(
             ["XGboost の Top-1の結果", "XGboost の Top-3の結果"],
-            [smoothed_top_1_pred_half, smoothed_top_3_pred_half],
-            y_test_half,
+            [smoothed_top_1_pred[start:], smoothed_top_3_pred[start:]],
+            y_test_[start:],
             labels,
-            file_path=f"/Users/satooru/Documents/kajilab/ipsj-cooking-action-recognition/images/{model_type}_top1_top3.png",  # "result_graph_top_k.png",
+            file_path=f"./images/{model_type}_top1_top3.png",  # "result_graph_top_k.png",
         )
-        # plot_result_by_graph(
-        #     y_test_half,
-        #     smoothed_pred_half,
-        #     labels,
-        #     output_dir,
-        #     file_name=f"/Users/satooru/Documents/kajilab/ipsj-cooking-action-recognition/images/{model_type}_top1.png",  # "result_graph_top_k.png",
-        # )
-        # # if replace_top_k_accurary:
-        # plot_result_by_graph(
-        #     y_test_half,
-        #     top_k_pred_half,
-        #     labels,
-        #     output_dir,
-        #     file_name=f"/Users/satooru/Documents/kajilab/ipsj-cooking-action-recognition/images/{model_type}_top3.png",  # "result_graph_top_k.png",
-        # )
+
+        # mask3 を表示
+        # plt.figure(figsize=(10, 3))
+        # plt.plot(mask3)
+        # plt.show()
 
 
 if __name__ == "__main__":
